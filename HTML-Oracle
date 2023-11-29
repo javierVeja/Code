@@ -1,0 +1,606 @@
+This is my final project for my software engineering class. I created a database with the courses avaiable for the students of the university and there information of the courses they have
+taken. With the databse I created a conenction with this website so they can create a 4 year plan for there major, by adding and modify the plan they have, with access to there information
+of the courses taken. 
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!-- The script is written in JavaScript -->
+    <script>
+        var counter = 2023; // Initialize the counter variable
+        
+        function duplicateTable() {
+            // Get the table container
+            var originalTable = document.getElementById("mainTable");
+            // Get the table to duplicate
+            var clonedTable = originalTable.cloneNode(true);
+            // Clone the table
+            var container = document.getElementById("tableContainer");
+
+            // Increment the counter
+            counter++;
+            var resultElement = clonedTable.querySelector('.result');
+            // Update the result display
+            resultElement.textContent = counter; 
+            // Append the cloned table to the container
+            container.appendChild(clonedTable);
+        }
+        
+        function addNewRow() {
+            var table = document.querySelector('.table1');
+            var newRow = table.insertRow(table.rows.length - 1);
+
+            var cell1 = newRow.insertCell(0);
+            var cell2 = newRow.insertCell(1);
+            var cell3 = newRow.insertCell(2);
+            var cell4 = newRow.insertCell(3);
+
+            cell1.innerHTML = '<select name="department"><option value=""></option></select>';
+            cell2.innerHTML = '<select name="code"><option value=""></option></select>';
+            cell3.innerHTML = '';
+            cell4.innerHTML = '';
+        }
+        
+        
+
+    </script>
+    
+    <style>
+        table, th, td {
+            border: .1px solid black;
+            border-collapse: collapse;
+        }
+
+        .main {
+            margin-top: 20px;
+            margin-left: 110px;
+            background-color: rgb(251, 251, 251);
+            font-family: sans-serif;
+            border-radius: 8px;
+            /* Add rounded corners to the table */
+            overflow: hidden;
+        }
+
+        .table-container {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .table1, .table2, .table3 {
+            border: .1px solid #000;
+            border-collapse: collapse;
+            margin: 10px auto;
+            background-color: rgb(251, 251, 251);
+            border-radius: 8px;
+            /* Add rounded corners to the table */
+            overflow: hidden;
+            width: 25%;
+            /* Increase the table's width */
+            height: 300px;
+        }
+
+        .table1 td,
+        .table1 th,
+        .table2 td,
+        .table2 th,
+        .table3 td,
+        .table3 th {
+            border: .1px solid #000;
+            padding: 8px;
+            font-family: sans-serif;
+        }
+
+        .addyear {
+            margin-top: 10px;
+            margin-left: 110px;
+            background: #0b62af;
+            color: white;
+            border-radius: 5px;
+            /* Add rounded corners to the table */
+            overflow: hidden;
+            width: 80px;
+            height: 25px;
+        }
+        .title-box {
+            background-color: #004a8a;
+            /* Set the background color */
+            color: white;
+            /* Set the text color */
+            padding: 5px;
+            /* Add some padding for better aesthetics */
+            font-size: 18px;
+            /* Set the font size */
+            font-family: sans-serif;
+        }
+        th {
+            color: #004a8a;
+        }
+
+    </style>
+
+    <title>Document</title>
+</head>
+
+<body>
+    <div class="title-box">
+        <!-- Page Title -->
+        <h1>
+            <center>Advising Page</center>
+        </h1>
+        <!-- Section for displaying courses taken -->
+    </div>
+
+    <div class="table-container" id="mainTable">
+        <h2>
+            <span class='result' style="font-family: sans-serif;" >2023</span>
+        </h2>
+        <table class="table4">
+            <table class="table1" id="Fall" style="float: left;">
+
+                <tr>
+                    <th colspan="4" Style="color: black">Fall</th>
+                </tr>
+                <tr>
+                    <th>Depart</th>
+                    <th>Code</th>
+                    <th>Name</th>
+                    <th>Credits</th>
+                </tr>
+                <!-- Sample course data row for left column -->
+
+                <tr>
+                    <form oninput="outputResult.value = course1.value">
+                        <td>
+
+                            <label for="department"></label>
+                            <select id="department" name="department">
+                                <option value=""></option>
+
+                            </select>
+                        </td>
+                        <td>
+                            <label for="code"></label>
+                            <select id="code" name="code">
+                                <option value=""></option>
+
+                            </select>
+                        </td>
+
+                        <td>
+
+                        </td>
+                        <td>
+
+                        </td>
+                    </form>
+                </tr>
+                <tr>
+                    <form oninput="outputResult.value = course1.value">
+                        <td>
+
+                            <label for="department"></label>
+                            <select id="department" name="department">
+                                <option value=""></option>
+                            </select>
+                        </td>
+                        <td>
+                            <label for="code"></label>
+                            <select id="code" name="code">
+                                <option value=""></option>
+
+                            </select>
+                        </td>
+
+                        <td>
+
+                        </td>
+                        <td>
+
+                        </td>
+                    </form>
+                </tr>
+                <tr>
+                    <form oninput="outputResult.value = course1.value">
+                        <td>
+
+                            <label for="department"></label>
+                            <select id="department" name="department">
+                                <option value=""></option>
+
+                            </select>
+                        </td>
+                        <td>
+                            <label for="code"></label>
+                            <select id="code" name="code">
+                                <option value=""></option>
+                            </select>
+                        </td>
+
+                        <td>
+
+                        </td>
+                        <td>
+
+                        </td>
+                    </form>
+                </tr>
+                <tr>
+                    <form oninput="outputResult.value = course1.value">
+                        <td>
+
+                            <label for="department"></label>
+                            <select id="department" name="department">
+                                <option value=""></option>
+                            </select>
+                        </td>
+                        <td>
+                            <label for="code"></label>
+                            <select id="code" name="code">
+                                <option value=""></option>
+
+                            </select>
+                        </td>
+
+                        <td>
+
+                        </td>
+                        <td>
+
+                        </td>
+                    </form>
+                </tr>
+                <tr>
+                    <form oninput="outputResult.value = course1.value">
+                        <td>
+
+                            <label for="department"></label>
+                            <select id="department" name="department">
+                                <option value=""></option>
+
+                            </select>
+
+                        </td>
+
+                        <td>
+                            <label for="code"></label>
+                            <select id="code" name="code">
+                                <option value=""></option>
+
+                            </select>
+                        </td>
+
+                        <td>
+
+                        </td>
+                        <td>
+
+                        </td>
+
+                </tr>
+                <tr>
+                    <th colspan="4" Style="color: black">
+                        <button id="nextButton" type="button" onclick="addNewRow()">New Row</button>
+                    </th>
+                </tr>
+
+            </table>
+
+
+            <table class="table2" style="margin: 10 auto;">
+                <tr>
+                    <th colspan="4" Style="color: black">Spring</th>
+                </tr>
+                <tr>
+                    <th>Depart</th>
+                    <th>Code</th>
+                    <th>Name</th>
+                    <th>Credits</th>
+                </tr>
+                <!-- Sample course data row for left column -->
+
+                <tr>
+
+                    <form oninput="outputResult.value = course1.value">
+                        <td>
+                            <label for="department"></label>
+                            <select id="department" name="department">
+                                <option value=""></option>
+
+                            </select>
+                        </td>
+                        <td>
+                            <label for="code"></label>
+                            <select id="code" name="code">
+                                <option value=""></option>
+
+                            </select>
+                        </td>
+
+                        <td>
+
+                        </td>
+                        <td>
+
+                        </td>
+                    </form>
+                </tr>
+                <tr>
+                    <form oninput="outputResult.value = course1.value">
+                        <td>
+                            <label for="department"></label>
+                            <select id="department" name="department">
+                                <option value=""></option>
+                            </select>
+                        </td>
+                        <td>
+                            <label for="code"></label>
+                            <select id="code" name="code">
+                                <option value=""></option>
+
+                            </select>
+                        </td>
+
+                        <td>
+
+                        </td>
+                        <td>
+
+                        </td>
+                    </form>
+                </tr>
+                <tr>
+                    <form oninput="outputResult.value = course1.value">
+                        <td>
+
+                            <label for="department"></label>
+                            <select id="department" name="department">
+                                <option value=""></option>
+
+                            </select>
+                        </td>
+                        <td>
+                            <label for="code"></label>
+                            <select id="code" name="code">
+                                <option value=""></option>
+                            </select>
+                        </td>
+
+                        <td>
+
+                        </td>
+                        <td>
+
+                        </td>
+                    </form>
+                </tr>
+                <tr>
+                    <form oninput="outputResult.value = course1.value">
+                        <td>
+
+                            <label for="department"></label>
+                            <select id="department" name="department">
+                                <option value=""></option>
+
+                            </select>
+                        </td>
+                        <td>
+                            <label for="code"></label>
+                            <select id="code" name="code">
+                                <option value=""></option>
+                        </td>
+
+                        <td>
+
+                        </td>
+                        <td>
+
+                        </td>
+                    </form>
+                </tr>
+                <tr>
+                    <form oninput="outputResult.value = course1.value">
+                        <td>
+                            <label for="department"></label>
+                            <select id="department" name="department">
+                                <option value=""></option>
+
+                            </select>
+                        </td>
+                        <td>
+                            <label for="code"></label>
+                            <select id="code" name="code">
+                                <option value=""></option>
+                            </select>
+                        </td>
+
+                        <td>
+
+                        </td>
+                        <td>
+
+                        </td>
+                    </form>
+                </tr>
+                <tr>
+                    <th colspan="4" Style="color: black">
+                        <button id="nextButton" type="button" onclick="addNewRow()">New Row</button>
+                    </th>
+                </tr>
+                
+
+
+            </table>
+
+
+            <table class="table3" style="float: right;">
+                <tr>
+                    <th colspan="4" Style="color: black">Winter/Summer</th>
+                </tr>
+                <tr>
+                    <th>Depart</th>
+                    <th>Code</th>
+                    <th>Name</th>
+                    <th>Credits</th>
+                </tr>
+                <!-- Sample course data row for left column -->
+
+                <tr>
+                    <form oninput="outputResult.value = course1.value">
+                        <td>
+                            <label for="department"></label>
+                            <select id="department" name="department">
+                                <option value=""></option>
+                            </select>
+                        </td>
+                        <td>
+                            <label for="code"></label>
+                            <select id="code" name="code">
+                                <option value=""></option>
+                            </select>
+                        </td>
+
+                        <td>
+
+                        </td>
+                        <td>
+
+                        </td>
+                    </form>
+                </tr>
+                <tr>
+                    <form oninput="outputResult.value = course1.value">
+                        <td>
+                            <label for="department"></label>
+                            <select id="department" name="department">
+                                <option value=""></option>
+                            </select>
+                        </td>
+                        <td>
+                            <label for="code"></label>
+                            <select id="code" name="code">
+                                <option value=""></option>
+                            </select>
+                        </td>
+
+                        <td>
+
+                        </td>
+                        <td>
+
+                        </td>
+                    </form>
+                </tr>
+                <tr>
+                    <form oninput="outputResult.value = course1.value">
+                        <td>
+                            <label for="department"></label>
+                            <select id="department" name="department">
+                                <option value=""></option>
+                            </select>
+                        </td>
+                        <td>
+                            <label for="code"></label>
+                            <select id="code" name="code">
+                                <option value=""></option>
+                            </select>
+                        </td>
+
+                        <td>
+
+                        </td>
+                        <td>
+
+                        </td>
+                    </form>
+                </tr>
+                <tr>
+                    <form oninput="outputResult.value = course1.value">
+                        <td>
+                            <label for="department"></label>
+                            <select id="department" name="department">
+                                <option value=""></option>
+                            </select>
+                        </td>
+                        <td>
+                            <label for="code"></label>
+                            <select id="code" name="code">
+                                <option value=""></option>
+                            </select>
+                        </td>
+
+                        <td>
+
+                        </td>
+                        <td>
+
+                        </td>
+                    </form>
+                </tr>
+                <tr>
+                    <form oninput="outputResult.value = course1.value">
+                        <td>
+                            <label for="department"></label>
+                            <select id="department" name="department">
+                                <option value=""></option>
+                            </select>
+                        </td>
+                        <td>
+                            <label for="code"></label>
+                            <select id="code" name="code">
+                                <option value=""></option>
+                            </select>
+                        </td>
+
+                        <td>
+
+                        </td>
+                        <td>
+
+                        </td>
+                    </form>
+                </tr>
+                <tr>
+                    <th colspan="4" Style="color: black">
+                        <button id="nextButton" type="button" onclick="addNewRow()">New Row</button>
+                    </th>
+                </tr>
+
+            </table>
+        </table>
+    </div>
+
+    <div id="tableContainer">
+        <!-- Duplicated tables will be added here -->
+    </div>
+
+    <!-- Add year button to add a new year row -->
+    <button class="addyear" onclick="duplicateTable()">Add Year</button>
+
+    <!-- Table for displaying course information -->
+    <table class="main" width=30%>
+        <!-- Table header row -->
+        <tr>
+            <th colspan="4" Style="color: black">Courses taken</th>
+        </tr>
+        <tr>
+            <th>Course Id</th>
+            <th>Course Name</th>
+            <th>Credits</th>
+        </tr>
+        <!-- Sample course data row -->
+        <tr>
+            <td>CSC150</td>
+            <td>Seminar</td>
+            <td>0.5</td>
+        </tr>
+        <tr>
+            <td>CSC150</td>
+            <td>Seminar</td>
+            <td>0.5</td>
+        </tr>
+    </table>
+
+</body>
+
+</html>
