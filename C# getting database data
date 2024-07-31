@@ -20,7 +20,7 @@ namespace AppSecurityManager
 
 
     }
-    class Maintenance
+    class AppMaintenance
     {
         public Guid ID { get; set; }
         public string Name { get; set; }
@@ -30,7 +30,7 @@ namespace AppSecurityManager
         public List<QDIRole> Roles { get; set; }
     }
 
-    public class QRole
+    public class AppRole
     {
         public Guid ID { get; set; }
         public string RowId { get; set; }
