@@ -1,0 +1,232 @@
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using javierdb;
+
+namespace AppSecurityManager
+{
+    class DBRepository
+    {
+        private static clsDBConnection db = new clsDBConnection(clsDBConnection.DBs.Prod);
+        static string strSQL;
+
+        public static List<Maintenance> GetApps()
+        {
+            List<Maintenance> lstApps = new List<Maintenance>();
+
+            strSQL = "SELECT uid_appid,var_appname,car_apptype,car_rolerequired,car_allowdelegation FROM tb_App ORDER BY UPPER(var_appname)";
+
+            DataTable dt = db.GetDataTable(strSQL);
+
+            foreach (DataRow row in dt.Rows)
+            {
+                Maintenance app = new Maintenance();
+
+                app.ID = db.RawToGuid(row["UID_APPID"]);
+                app.Name = row["VAR_APPNAME"].ToString();
+                app.Type = row["CAR_APPTYPE"].ToString();
+                app.roleRequired = row["CAR_ROLEREQUIRED"].ToString() == "T" ? true : false;
+                app.delegation = row["CAR_ALLOWDELEGATION"].ToString() == "T" ? true : false;
+                app.Roles = GetListAppRoles(app.ID);
+                lstApps.Add(app);
+            }
+            return lstApps;
+        }
+        public static List<QRole> GetListAppRoles(Guid id)
+        {
+            List<QRole> lstSelectors = new List<QRole>();
+
+            strSQL = "SELECT uid_appid,var_rolename,num_sortorder,car_super,rowid FROM tb_approle WHERE uid_appid = :APPID ORDER BY num_sortorder";
+            db.AddParam(clsDBConnection.SQLTypes.SQLSelect, "APPID", clsDBConnection.ParamTypes.ParamGuid, id);
+
+            DataTable dt = db.GetDataTable(strSQL);
+
+            foreach (DataRow row in dt.Rows)
+            {
+                QRole role = new QRole();
+
+                role.ID = db.RawToGuid(row["UID_APPID"]);
+                role.Name = row["VAR_ROLENAME"].ToString();
+                role.sortOrder = Convert.ToInt32(row["NUM_SORTORDER"]);
+                role.super = row["CAR_SUPER"].ToString() == "T" ? true : false;
+                role.RowId = row["ROWID"].ToString();
+                lstSelectors.Add(role);
+            }
+            return lstSelectors;
+
+        }
+
+        //This method add an aplication to the list with a new guid
+        public static void AddApp(Maintenance app)
+        {
+            try
+            {
+                // Construct the SQL query to insert a new app record
+                strSQL = @"INSERT INTO tb_app (UID_APPID, VAR_APPNAME, CAR_APPTYPE, CAR_ROLEREQUIRED, CAR_ALLOWDELEGATION) 
+                VALUES (:UID_APPID, :VAR_APPNAME, :CAR_APPTYPE, :CAR_ROLEREQUIRED, :CAR_ALLOWDELEGATION)";
+
+                // Add parameters to the query
+                db.AddParam(clsDBConnection.SQLTypes.SQLUpdate, "UID_APPID", clsDBConnection.ParamTypes.ParamGuid, app.ID);
+                db.AddParam(clsDBConnection.SQLTypes.SQLUpdate, "VAR_APPNAME", clsDBConnection.ParamTypes.ParamString, app.Name);
+                db.AddParam(clsDBConnection.SQLTypes.SQLUpdate, "CAR_APPTYPE", clsDBConnection.ParamTypes.ParamString, app.Type);
+                db.AddParam(clsDBConnection.SQLTypes.SQLUpdate, "CAR_ROLEREQUIRED", clsDBConnection.ParamTypes.ParamString, app.roleRequired ? "T" : "F");
+                db.AddParam(clsDBConnection.SQLTypes.SQLUpdate, "CAR_ALLOWDELEGATION", clsDBConnection.ParamTypes.ParamString, app.delegation ? "T" : "F");
+
+                // Execute the query
+                db.ExecuteSQL(strSQL);
+                db.Commit();
+
+            }
+            catch (Exception ex)
+            {
+                db.RollBack();
+                Console.WriteLine(ex.Message);
+                throw;
+            }
+        }
+
+        public static bool UpdateApplication(Maintenance app)
+        {
+            try
+            {
+                strSQL = "UPDATE tb_app SET VAR_APPNAME = :APPNAME, CAR_ROLEREQUIRED = :ROLEREQUIRED, CAR_ALLOWDELEGATION = :DELEGATION, CAR_APPTYPE = :TYPE WHERE UID_APPID = :APPID ";
+
+                    // Add parameters to the query
+                db.AddParam(clsDBConnection.SQLTypes.SQLUpdate, "APPNAME", clsDBConnection.ParamTypes.ParamString, app.Name);
+                db.AddParam(clsDBConnection.SQLTypes.SQLUpdate, "ROLEREQUIRED", clsDBConnection.ParamTypes.ParamString, app.roleRequired ? "T" : "F");
+                db.AddParam(clsDBConnection.SQLTypes.SQLUpdate, "DELEGATION", clsDBConnection.ParamTypes.ParamString, app.delegation ? "T" : "F");
+                db.AddParam(clsDBConnection.SQLTypes.SQLUpdate, "APPID", clsDBConnection.ParamTypes.ParamGuid, app.ID);
+                db.AddParam(clsDBConnection.SQLTypes.SQLUpdate, "TYPE", clsDBConnection.ParamTypes.ParamString, app.Type);
+
+                // Execute the query
+                db.ExecuteSQL(strSQL);
+                db.Commit();
+                
+                return true;
+            }
+            catch (Exception ex)
+            {
+                db.RollBack();
+                Console.WriteLine(ex.Message);
+                return false;
+            }
+        }
+
+        //This method updates the role information in an appliciation
+        public static bool UpdateRole(QRole role)
+        {
+            try
+            {
+                strSQL = "UPDATE tb_approle SET VAR_ROLENAME = :ROLENAME, NUM_SORTORDER = :SORTORDER, CAR_SUPER = :SUPER WHERE ROWID = :APPROWID";
+
+                // Add parameters to the query
+                db.AddParam(clsDBConnection.SQLTypes.SQLUpdate, "ROLENAME", clsDBConnection.ParamTypes.ParamString, role.Name);
+                db.AddParam(clsDBConnection.SQLTypes.SQLUpdate, "SORTORDER", clsDBConnection.ParamTypes.ParamString, role.sortOrder);
+                db.AddParam(clsDBConnection.SQLTypes.SQLUpdate, "SUPER", clsDBConnection.ParamTypes.ParamString, role.super ? "T" : "F");
+                db.AddParam(clsDBConnection.SQLTypes.SQLUpdate, "APPROWID", clsDBConnection.ParamTypes.ParamRowID, role.RowId);
+
+                // Execute the query
+                db.ExecuteSQL(strSQL);
+                db.Commit();
+                
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                db.RollBack();
+                Console.WriteLine(ex.Message);
+                return false;
+            }
+        }
+
+        //This method adds a role to an application
+        public static bool AddRole(Guid appId, QRole role)
+        {
+            try
+            {
+                strSQL = "INSERT INTO tb_approle (UID_APPID, VAR_ROLENAME, NUM_SORTORDER, CAR_SUPER) VALUES (:APPROLEID, :ROLENAME, :SORTORDER, :SUPER)";
+
+                role.ID = Guid.NewGuid();
+
+                // Add parameters to the query
+                db.AddParam(clsDBConnection.SQLTypes.SQLUpdate, "APPROLEID", clsDBConnection.ParamTypes.ParamGuid, appId);
+                db.AddParam(clsDBConnection.SQLTypes.SQLUpdate, "ROLENAME", clsDBConnection.ParamTypes.ParamString, role.Name);
+                db.AddParam(clsDBConnection.SQLTypes.SQLUpdate, "SORTORDER", clsDBConnection.ParamTypes.ParamString, role.sortOrder);
+                db.AddParam(clsDBConnection.SQLTypes.SQLUpdate, "SUPER", clsDBConnection.ParamTypes.ParamString, role.super ? "T" : "F");
+
+                // Execute the query
+                db.ExecuteSQL(strSQL);
+                db.Commit();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                db.RollBack();
+                Console.WriteLine(ex.Message);
+                return false;
+            }
+        }
+
+        public static bool RemoveRoleFromApp(Guid appId, QRole role)
+        {
+            try
+            {
+                // Construct the SQL query to delete the role
+                strSQL = "DELETE FROM tb_approle WHERE UID_APPID = :APPID AND VAR_ROLENAME = :ROLENAME";
+
+                // Add parameters to the query
+                db.AddParam(clsDBConnection.SQLTypes.SQLUpdate, "APPID", clsDBConnection.ParamTypes.ParamGuid, appId);
+                db.AddParam(clsDBConnection.SQLTypes.SQLUpdate, "ROLENAME", clsDBConnection.ParamTypes.ParamString, role.Name);
+
+                // Execute the query
+                db.ExecuteSQL(strSQL);
+                db.Commit();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                db.RollBack();
+                Console.WriteLine(ex.Message);
+                return false;
+            }
+        }
+
+        public static bool RemoveApplication(Maintenance app)
+        {
+            try
+            {
+                strSQL = "SELECT COUNT(*) FROM tb_appsecurity WHERE uid_appid = :APPID";
+                db.AddParam(clsDBConnection.SQLTypes.SQLSelect, "APPID", clsDBConnection.ParamTypes.ParamGuid, app.ID);
+                object objCount = db.GetSingleValue(strSQL);
+                if (int.TryParse(objCount.ToString(), out int intCount))
+                {
+                    
+                }
+
+                // Construct the SQL query to delete the application
+                strSQL = "DELETE FROM tb_app WHERE UID_APPID = :APPID";
+
+                // Add parameters to the query
+                db.AddParam(clsDBConnection.SQLTypes.SQLUpdate, "APPID", clsDBConnection.ParamTypes.ParamGuid, app.ID);
+
+                // Execute the query
+                db.ExecuteSQL(strSQL);
+                db.Commit();
+
+                return true;
+            }
+
+            catch (Exception ex)
+            {
+                db.RollBack();
+                throw ex;
+            }
+        }
+    }
+}
