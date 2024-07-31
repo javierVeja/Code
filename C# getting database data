@@ -1,0 +1,41 @@
+
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace AppSecurityManager
+{
+    class App
+    {
+
+        public Guid ID { get; set; }
+        public string Name { get; set; }
+        public string Type { get; set; }
+        public string roleRequired { get; set; }
+        public string Role{ get; set; }
+        public string SID { get; set; }
+        public int sortOrder { get; set; }
+        public string super { get; set; }
+
+
+    }
+    class Maintenance
+    {
+        public Guid ID { get; set; }
+        public string Name { get; set; }
+        public string Type { get; set; }
+        public bool roleRequired { get; set; }
+        public bool delegation { get; set; }
+        public List<QDIRole> Roles { get; set; }
+    }
+
+    public class QRole
+    {
+        public Guid ID { get; set; }
+        public string RowId { get; set; }
+        public string Name { get; set; }
+        public int sortOrder { get; set; }
+        public bool super { get; set; }
+    }
+}
