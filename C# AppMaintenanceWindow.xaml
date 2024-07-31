@@ -1,0 +1,136 @@
+<Window x:Class="AppSecurityManager.AppMaintenanceWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:AppSecurityManager"
+        mc:Ignorable="d"
+        Title="AppMaintenanceWindow" 
+        Height="735" 
+        MinHeight="635"
+        Loaded="Window_Loaded"
+        Width="800" 
+        MinWidth="800">
+
+    <Window.Resources>
+        <Style
+            x:Key="smallButtonTemplate"
+            TargetType="Button">
+            <Setter
+                Property="Background"
+                Value="#00997a" />
+            <Setter
+                Property="Foreground"
+                Value="White" />
+            <Setter
+                Property="FontSize"
+                Value="18" />
+            <Setter
+                Property="FontFamily"
+                Value="Microsoft JhengHei"/>
+            <Setter
+                Property="Width"
+                Value="100" />
+            <Setter
+                Property="Height"
+                Value="30" />
+            <Setter
+                Property="Template">
+                <Setter.Value>
+                    <ControlTemplate
+                        TargetType="Button">
+                        <Border
+                            CornerRadius="5"
+                            Background="{TemplateBinding Background}"
+                            BorderThickness="1"
+                            Padding="0">
+                            <ContentPresenter
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center">
+                            </ContentPresenter>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <EventTrigger
+                    RoutedEvent="Click">
+                    <EventTrigger.Actions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation
+                                    Duration="0:0:0.100"
+                                    To="32"
+                                    Storyboard.TargetProperty="Height" />
+                                <DoubleAnimation
+                                    Duration="0:0:0.100"
+                                    To="102"
+                                    Storyboard.TargetProperty="Width" />
+                                <DoubleAnimation
+                                    BeginTime="0:0:0.100"
+                                    Duration="0:0:0.100"
+                                    To="100"
+                                    Storyboard.TargetProperty="Width" />
+                                <DoubleAnimation
+                                    BeginTime="0:0:0.100"
+                                    Duration="0:0:0.100"
+                                    To="30"
+                                    Storyboard.TargetProperty="Height" />
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger.Actions>
+                </EventTrigger>
+                <Trigger
+                    Property="IsMouseOver"
+                    Value="True">
+                    <Setter
+                        Property="Background"
+                        Value="#00E6B8" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="0,-12,0.333,-0.667">
+        <Label x:Name="lbl_AppPage" Content="Apps Maintenance" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,8,0,0" FontWeight="Bold" FontSize="30"/>
+        <ListView x:Name="lstvw_Apps" Margin="10,72,0,37" SelectionChanged="lstvw_Apps_SelectionChanged" HorizontalAlignment="Left" Width="345" >
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn DisplayMemberBinding="{Binding Name}"/>
+                </GridView>
+            </ListView.View>
+            <GroupBox Header="GroupBox" Height="100" Width="100"/>
+        </ListView>
+        <Label x:Name="lbl_AppPage_Copy" Content="Membership" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="389,209,0,0" FontSize="20" Height="44"/>
+        <ListView x:Name="lstvw_Roles" Margin="386,253,36,228" ItemsSource="{Binding lst}" SelectionChanged="lstvw_Roles_SelectionChanged" GridViewColumnHeader.Click="GridViewColumnHeaderClicked">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Role Name" Width="200px" DisplayMemberBinding="{Binding Name}" />
+                    <GridViewColumn Header="Sort Order" Width="90px" DisplayMemberBinding="{Binding sortOrder}"/>
+                    <GridViewColumn Header="Super" Width="60px" DisplayMemberBinding="{Binding super}"/>
+                </GridView>
+            </ListView.View>
+        </ListView>
+        <Button x:Name="btn_add" Content="Add" Style="{StaticResource smallButtonTemplate}" Width="100" Height="30" Margin="657,0,0,172" Click="btn_addrole_Click" VerticalAlignment="Bottom" HorizontalAlignment="Left"/>
+        <TextBox x:Name="cmb_sortOrder"  HorizontalAlignment="Left" Width="37" Margin="552,0,0,85" Height="22" VerticalAlignment="Bottom" Background="yellow"/>
+        <Button x:Name="btn_SaveEdit" Content="Save" Style="{StaticResource smallButtonTemplate}" HorizontalAlignment="Left" Width="100" Height="30" Margin="657,0,0,37" Click="Btn_SaveEdit_Click" VerticalAlignment="Bottom"/>
+        <Button x:Name="btn_delete" Content="Delete" Style="{StaticResource smallButtonTemplate}" Width="100" Height="30" Margin="389,0,0,172" Click="btn_deleterole_Click" VerticalAlignment="Bottom" HorizontalAlignment="Left"/>
+        <CheckBox x:Name="car_delegation" Content="Allow Delegation" HorizontalAlignment="Left" Margin="530,0,0,561"  Height="15" VerticalAlignment="Bottom" RenderTransformOrigin="0.5,0.522"/>
+        <CheckBox x:Name="car_role" Content="Role Required" HorizontalAlignment="Left" Margin="530,0,0,581"  Height="15" VerticalAlignment="Bottom" RenderTransformOrigin="-1.714,1.833"/>
+        <CheckBox x:Name="car_super" Content="Super User" HorizontalAlignment="Left" Margin="657,0,0,129" Height="15" VerticalAlignment="Bottom"/>
+        <Button x:Name="btn_edit" Content="Edit" Style="{StaticResource smallButtonTemplate}" HorizontalAlignment="Left" Width="100" Height="30" Margin="525,0,0,172" Click="btn_editRole_Click" VerticalAlignment="Bottom"/>
+        <Label x:Name="lbl_role"  Content="Role Name:" HorizontalAlignment="Left" Margin="386,0,0,125" Width="88" Height="25" VerticalAlignment="Bottom"/>
+        <Button x:Name="btn_refresh" Content="Refresh" Style="{StaticResource smallButtonTemplate}" Width="100" Height="30" Margin="0,28,36,0" Click="btn_refresh_Click" VerticalAlignment="Top" HorizontalAlignment="Right"/>
+        <RadioButton x:Name="car_apptype_Web" Content="Web App" HorizontalAlignment="Left" Margin="386,0,0,561" Height="15" VerticalAlignment="Bottom" GroupName="AppType" RenderTransformOrigin="0.5,0.522"/>
+        <RadioButton x:Name="car_apptype_Net" Content="Netwok App" HorizontalAlignment="Left" Margin="386,0,0,581"  Height="15" VerticalAlignment="Bottom" GroupName="AppType" RenderTransformOrigin="0.5,0.522"/>
+        <TextBox x:Name="cmb_appname" HorizontalAlignment="Left" Width="120" Margin="386,0,0,528" Height="17" VerticalAlignment="Bottom" Background="yellow" />
+        <TextBox x:Name="cmb_rolename"   HorizontalAlignment="Left" Width="120" Margin="386,0,0,85" Height="22" VerticalAlignment="Bottom" Background="yellow"/>
+        <Button x:Name="btn_addapp" Content="Add App" Style="{StaticResource smallButtonTemplate}" Width="100" Height="30" Margin="0,72,163,0" Click="btn_addapp_Click" VerticalAlignment="Top" HorizontalAlignment="Right"/>
+        <TextBlock x:Name="lbl_sortorder" HorizontalAlignment="Left" Margin="552,573,0,0" TextWrapping="Wrap" Text="Sort Order:" VerticalAlignment="Top"/>
+        <TextBlock x:Name="lbl_appname" HorizontalAlignment="Left" Margin="389,82,0,0" TextWrapping="Wrap" Text="Enter new app information:" VerticalAlignment="Top" Width="186" FontSize="15"/>
+        <Button x:Name="btn_saveAdd" Content="Save" Style="{StaticResource smallButtonTemplate}" HorizontalAlignment="Left" Width="100" Height="30" Margin="657,0,0,515" Click="btn_saveapp_Click" VerticalAlignment="Bottom"/>
+        <Button x:Name="btn_deleteapp" Content="Delete App" Style="{StaticResource smallButtonTemplate}" Width="111" Height="30" Margin="0,72,296,0" Click="btn_deleteapp_Click" VerticalAlignment="Top" HorizontalAlignment="Right"/>
+
+
+    </Grid>
+</Window>
