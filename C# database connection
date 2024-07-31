@@ -13,9 +13,9 @@ namespace AppSecurityManager
         private static clsDBConnection db = new clsDBConnection(clsDBConnection.DBs.Prod);
         static string strSQL;
 
-        public static List<Maintenance> GetApps()
+        public static List<AppMaintenance> GetApps()
         {
-            List<Maintenance> lstApps = new List<Maintenance>();
+            List<AppMaintenance> lstApps = new List<AppMaintenance>();
 
             strSQL = "SELECT uid_appid,var_appname,car_apptype,car_rolerequired,car_allowdelegation FROM tb_App ORDER BY UPPER(var_appname)";
 
@@ -23,7 +23,7 @@ namespace AppSecurityManager
 
             foreach (DataRow row in dt.Rows)
             {
-                Maintenance app = new Maintenance();
+                AppMaintenance app = new AppMaintenance();
 
                 app.ID = db.RawToGuid(row["UID_APPID"]);
                 app.Name = row["VAR_APPNAME"].ToString();
@@ -35,9 +35,9 @@ namespace AppSecurityManager
             }
             return lstApps;
         }
-        public static List<QRole> GetListAppRoles(Guid id)
+        public static List<AppRole> GetListAppRoles(Guid id)
         {
-            List<QRole> lstSelectors = new List<QRole>();
+            List<AppRole> lstSelectors = new List<AppRole>();
 
             strSQL = "SELECT uid_appid,var_rolename,num_sortorder,car_super,rowid FROM tb_approle WHERE uid_appid = :APPID ORDER BY num_sortorder";
             db.AddParam(clsDBConnection.SQLTypes.SQLSelect, "APPID", clsDBConnection.ParamTypes.ParamGuid, id);
@@ -46,7 +46,7 @@ namespace AppSecurityManager
 
             foreach (DataRow row in dt.Rows)
             {
-                QRole role = new QRole();
+                AppRole role = new AppRole();
 
                 role.ID = db.RawToGuid(row["UID_APPID"]);
                 role.Name = row["VAR_ROLENAME"].ToString();
@@ -60,7 +60,7 @@ namespace AppSecurityManager
         }
 
         //This method add an aplication to the list with a new guid
-        public static void AddApp(Maintenance app)
+        public static void AddApp(AppMaintenance app)
         {
             try
             {
@@ -88,7 +88,7 @@ namespace AppSecurityManager
             }
         }
 
-        public static bool UpdateApplication(Maintenance app)
+        public static bool UpdateApplication(AppMaintenance app)
         {
             try
             {
@@ -116,7 +116,7 @@ namespace AppSecurityManager
         }
 
         //This method updates the role information in an appliciation
-        public static bool UpdateRole(QRole role)
+        public static bool UpdateRole(AppRole role)
         {
             try
             {
@@ -144,7 +144,7 @@ namespace AppSecurityManager
         }
 
         //This method adds a role to an application
-        public static bool AddRole(Guid appId, QRole role)
+        public static bool AddRole(Guid appId, AppRole role)
         {
             try
             {
@@ -172,7 +172,7 @@ namespace AppSecurityManager
             }
         }
 
-        public static bool RemoveRoleFromApp(Guid appId, QRole role)
+        public static bool RemoveRoleFromApp(Guid appId, AppRole role)
         {
             try
             {
@@ -197,7 +197,7 @@ namespace AppSecurityManager
             }
         }
 
-        public static bool RemoveApplication(Maintenance app)
+        public static bool RemoveApplication(AppMaintenance app)
         {
             try
             {
