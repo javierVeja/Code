@@ -1,1 +1,222 @@
+using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.IO;
+using System.Linq;
+using System.ServiceProcess;
+using static QDI.Messaging;
+using Newtonsoft.Json;
 
+namespace QDI
+{
+  class Program
+  {
+    private const string APP_NAME = "ServicesCheckerMWS";
+    private static string RootProgramFilesLocation = (Directory.Exists(@"C:\QDI\BK")) ? @"C:\QDI\BK\" : @"C:\QDI\FS\";
+    private static bool IsSuccessful = true; // used to see if this program completed successfully 
+    private static Connection.Status conStatus; // used to check the connection status 
+    private static DCStoreInfo StoreInfo; // used to hold this store's information 
+    static void Main(string[] args)
+    {
+      if (DateTime.Now.Hour != 4)
+      {
+        QDIStore qdiStore = new QDIStore();
+        StoreInfo = qdiStore.GetStoreInfo();
+
+        CheckAndHandleServicesMWS();
+
+        GetAlertsFromServer();
+      }
+    }
+
+    private static void CheckAndHandleServicesMWS()
+    {
+      try
+      {
+        string strService = ConfigurationManager.AppSettings["Services"];
+
+        if (string.IsNullOrEmpty(strService))
+        {
+          Messaging.WriteLine(APP_NAME, MessageTypes.Warning, "Service name is empty or null.");
+          return;
+        }
+
+        List<string> lstServices = strService.Split(',').Select(item => item.Trim()).ToList();
+
+        foreach (string item in lstServices)
+        {
+          string serviceName = null;
+          try { serviceName = new ServiceController(item).DisplayName; }
+          catch (Exception ex)
+          {
+            LogAlert(item, $"Service {item} does not exist.");
+            Messaging.WriteLine(APP_NAME, MessageTypes.Information, $"Service {item} does not exist. {ex.Message}");
+
+            continue;
+          }
+
+          ServiceController sc = new ServiceController(item);
+
+          try
+          {
+            if (sc.Status != ServiceControllerStatus.Running)
+            {
+              LogAlert(sc.ServiceName, $"{sc.DisplayName} is not running.");
+
+              Messaging.WriteLine(APP_NAME, MessageTypes.Information, $"{sc.DisplayName} is not running.");
+            }
+            else
+            {
+              RemoveAlert(sc.ServiceName);
+            }
+          }
+          catch (Exception ex)
+          {
+            Messaging.WriteLine(APP_NAME, MessageTypes.Information, "Save and Remove Alerts");
+            Messaging.WriteLine(APP_NAME, ex);
+          }
+        }
+      }
+      catch (Exception ex)
+      {
+        Messaging.WriteLine(APP_NAME, MessageTypes.Information, "Check And Handle Services error");
+        Messaging.WriteLine(APP_NAME, ex);
+        return;
+      }
+    }
+
+    private static void LogAlert(string serviceName, string message)
+    {
+      UAlert MWSalert = new UAlert(StoreInfo.Concept, StoreInfo.Store, $"{serviceName}", "SV", $"MWS {message}", DateTime.Now);
+
+      QDIAloha.wsAlohaCommands.MWSServiceAlert MWSAlerttoServer = new QDIAloha.wsAlohaCommands.MWSServiceAlert
+      {
+        Title = MWSalert.Title, // Adjust properties accordingly
+        Reason = MWSalert.Description,
+        LastUpdated = MWSalert.StartDate
+      };
+
+      Grind grind = new Grind();
+      bool result = Grind.SaveServicesNotRunning(MWSAlerttoServer);      
+
+      Messaging.WriteLine(APP_NAME, MessageTypes.Information, message);
+    }
+
+    private static void RemoveAlert(string serviceName)
+    {
+      QDIAloha.wsAlohaCommands.MWSServiceAlert MWSAlerttoServer = new QDIAloha.wsAlohaCommands.MWSServiceAlert
+      {
+        Title = serviceName, // Adjust properties accordingly
+      };
+
+      Grind grind = new Grind();
+      bool result = Grind.RemoveMWSServicesAlert(MWSAlerttoServer);
+    }
+
+      //============================================================Gets Alerts from the server====================================================================
+      private static void GetAlertsFromServer()
+    {
+      conStatus = Connection.Check();
+      if (!conStatus.HasFlag(Connection.Status.FileServer))
+      {
+        Messaging.WriteLine(APP_NAME, MessageTypes.Information, "Connection to file server was unsuccess");
+        return;
+      }
+
+      List<UAlert> serviceAlerts = MDBAlerts();
+      if (serviceAlerts != null)
+      {
+        bool result = Messaging.SyncAlerts(APP_NAME, serviceAlerts, "SV");
+        Messaging.WriteLine(APP_NAME, result != false ? MessageTypes.Information : MessageTypes.Warning,
+          "Syncing Alerts to QDI DB was " + (result != false ? "Successful" : "Failed"));
+      }
+    }
+
+    private static List<UAlert> MDBAlerts()
+    {
+      List<UAlert> serviceAlerts = new List<UAlert>();
+      List<QDIAloha.wsAlohaCommands.ServiceAlert> servicesNotRunning = new List<QDIAloha.wsAlohaCommands.ServiceAlert>();
+
+      try
+      {
+        Grind grind = new Grind();
+        servicesNotRunning = Grind.GetServicesNotRunning();
+
+      }
+      catch (Exception ex)
+      {
+        IsSuccessful = false;
+        if (ex.Message == "Server was unable to process request. ---> tb_ServicesStatus not found in StoreData.mdb")
+        {
+          UAlert errorAlert = new UAlert();
+          errorAlert.Concept = StoreInfo.Concept;
+          errorAlert.Store = StoreInfo.Store;
+          errorAlert.StartDate = DateTime.Now;
+          errorAlert.Type = "SV";
+          errorAlert.Title = "Cannot get Services Status";
+          errorAlert.Description = "tb_ServicesStatus not found in StoreData.mdb";
+
+          serviceAlerts.Add(errorAlert);
+        }
+        else if (ex.Message == "Server was unable to process request. ---> tb_ServicesStatus in StoreData.mdb needs to be rebuilt")
+        {
+          UAlert errorAlert = new UAlert();
+          errorAlert.Concept = StoreInfo.Concept;
+          errorAlert.Store = StoreInfo.Store;
+          errorAlert.StartDate = DateTime.Now;
+          errorAlert.Type = "SV";
+          errorAlert.Title = "Cannot get Services Status";
+          errorAlert.Description = "tb_ServicesStatus in StoreData.mdb needs to be rebuilt";
+
+          serviceAlerts.Add(errorAlert);
+        }
+        else if (ex.Message.StartsWith(@"Server was unable to process request. ---> Unable to start C:\QDI\FS\Program\ServiceCheckMWS.exe"))
+        {
+          UAlert errorAlert = new UAlert();
+          errorAlert.Concept = StoreInfo.Concept;
+          errorAlert.Store = StoreInfo.Store;
+          errorAlert.StartDate = DateTime.Now;
+          errorAlert.Type = "SV";
+          errorAlert.Title = "Cannot get Services Status";
+          errorAlert.Description = @"Cannot find C:\QDI\FS\Program\ServiceCheckMWS.exe";
+
+          serviceAlerts.Add(errorAlert);
+        }
+        else if (ex.Message.StartsWith("There was no endpoint listening at http://localhost:9001/QDIAlertHandling/QDIAlertCenter/ that could accept the message. "))
+        {
+          throw new Exception("Alert Center Service is Stopped", ex);
+        }
+        else
+        {
+          throw;
+        }
+        return null;
+      }
+
+      try
+      {
+        foreach (QDIAloha.wsAlohaCommands.ServiceAlert serviceOff in servicesNotRunning)
+        {
+          Messaging.WriteLine(APP_NAME, MessageTypes.Detail,
+                  "This Service Alert Title: " + serviceOff.Title
+                + serviceOff.Reason
+                + " Last Updated Date: " + serviceOff.LastUpdated.ToString("s"));
+
+          UAlert alert = new UAlert(StoreInfo.Concept, StoreInfo.Store, $"{serviceOff.Title} Service", "SV",
+          serviceOff.Reason, serviceOff.LastUpdated);
+
+          serviceAlerts.Add(alert);
+        }
+        if (servicesNotRunning.Count == 0)
+        {
+          Messaging.WriteLine(APP_NAME, MessageTypes.Information, "No services offline were found");
+        }
+      }
+      catch (Exception ex)
+      {
+        Messaging.WriteLine(APP_NAME, MessageTypes.Error, ex.Message);
+      }
+      return serviceAlerts;
+    }
+  }
+}
