@@ -1,0 +1,50 @@
+using Microsoft.Graph;
+using System;
+using System.Collections.Generic;
+
+public class DeskAPIData
+{
+  public int ticket_number { get; set; }
+  public string contact_email { get; set; }
+  public string subject { get; set; }
+  public string description { get; set; }
+  public string description_text { get; set; }
+  public string status { get; set; }
+  public int priority { get; set; }
+  public string type { get; set; }
+  public string source { get; set; }
+  public string assigned_to { get; set; }
+  public string company_name { get; set; }
+  public string sla { get; set; }
+  public bool? completed_within_sla { get; set; }
+  public string group { get; set; }
+  public string category { get; set; }
+  public string subcategory { get; set; }
+  public DateTime? created_on { get; set; }
+  public DateTime? updated_on { get; set; }
+  public DateTime? resolved_on { get; set; }
+  public DateTime? closed_on { get; set; }
+  public DateTime? due_date { get; set; }
+  public string first_response_time { get; set; }
+  public string first_assigned_time { get; set; }
+  public int first_assigned_duration { get; set; }
+  public int? resolved_duration { get; set; }
+  public int? first_replied_duration { get; set; }
+  public int? closed_duration { get; set; }
+  public List<string> attachments { get; set; } = new List<string>();
+  //public List<string> conversation { get; set; } = new List<string>();
+
+  public CustomFields custom_fields { get; set; } = new CustomFields();
+}
+
+public class CustomFields
+{
+  public string cf_Item { get; set; }
+  public string cf_Mode { get; set; }
+  public string cf_Caller { get; set; }
+  public string cf_Pager { get; set; }
+  public string cf_Requester_Name { get; set; }
+  public string cf_Region { get; set; }
+  public string cf_Category { get; set; }
+  public string cf_Sub_Category { get; set; }
+}
