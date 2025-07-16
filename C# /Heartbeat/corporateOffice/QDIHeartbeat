@@ -1,0 +1,91 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Net;
+using QDI.wsBD;
+using MessageTypes = QDI.Messaging.MessageTypes;
+
+namespace QDI
+{
+  class Program
+  {
+    private const string APP_NAME = "QDIHeartbeat";
+    private const string FILE_TYPE = "HB";
+    private DCStoreInfo StoreInfo;
+
+    static void Main(string[] args)
+    {
+      if (Process.GetProcessesByName(Process.GetCurrentProcess().ProcessName).Length <= 1)
+        new Program().GetHB(args);
+      else
+        Messaging.WriteLine(APP_NAME + "_1", MessageTypes.Warning, APP_NAME + " app is already running please try again later ");
+    }
+    private void GetHB(string[] args)
+    {
+      Connection.Status connection = new Connection.Status();
+      connection = Connection.Check();
+
+      if (!connection.HasFlag(Connection.Status.FileServer))
+      {
+        return;
+      }
+
+      QDIStore qdiStore = new QDIStore();
+      StoreInfo = qdiStore.GetStoreInfo();
+
+      if (StoreInfo == null)
+      {
+        Messaging.WriteLine(APP_NAME, MessageTypes.Information, "StoreInfo is null.");
+        return;
+      }
+
+      clsBDProcessing wsHBProcessing = new clsBDProcessing();
+      dsBussDate dsHB = new dsBussDate();
+
+      Messaging.WriteLine(APP_NAME, MessageTypes.Detail, "Concept: " + StoreInfo.Concept +
+                          " Service Type: " + StoreInfo.ServiceType + " Store: " + StoreInfo.Store);
+
+      dsBussDate.TB_STOREWSPOLLINGRow rowNew = dsHB.TB_STOREWSPOLLING.NewTB_STOREWSPOLLINGRow();
+      rowNew.NUM_CONCEPT = StoreInfo.Concept;
+      rowNew.NUM_STORE = StoreInfo.Store;
+      rowNew.CAR_FILETYPE = FILE_TYPE;
+      rowNew.DTE_BUSINESS = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Utc);
+      dsHB.TB_STOREWSPOLLING.AddTB_STOREWSPOLLINGRow(rowNew);
+
+      CredentialCache myCredentialCache = new CredentialCache();
+      myCredentialCache.Add(new Uri(wsHBProcessing.Url), "NTLM", new NetworkCredential(StoreInfo.Concept.ToString()
+        + StoreInfo.Store.ToString(), "4220Store", ""));
+      wsHBProcessing.Credentials = myCredentialCache;
+      wsHBProcessing.Timeout = 200000;
+
+
+      if (dsHB.TB_STOREWSPOLLING.Count <= 0)
+      {
+        Messaging.WriteLine(APP_NAME, MessageTypes.Information, "dsBD.TB_STOREWSPOLLING object has no data in it");
+        return;
+      }
+      try
+      {
+        if (wsHBProcessing.BDProcess(dsHB))
+        {
+          Messaging.WriteLine(APP_NAME, MessageTypes.Information, " sending successful. " +
+                               "Concept:" + StoreInfo.Concept + " Service Type:" + StoreInfo.ServiceType + " Store:" + StoreInfo.Store);
+        }
+        else
+        {
+          Messaging.WriteLine(APP_NAME, MessageTypes.Information, " sending QDIHeartbeat Failed. " +
+                              "Concept:" + StoreInfo.Concept + " Service Type:" + StoreInfo.ServiceType + " Store:" + StoreInfo.Store);
+        }
+      }
+      catch (Exception ex)
+      {
+        if (ex.Message == "Unable to connect to the remote server")
+        {
+          Messaging.WriteLine(APP_NAME, MessageTypes.Information, "Unable to connect to the remote server");
+          return;
+        }
+        Messaging.WriteLine(APP_NAME, MessageTypes.Information, "Failed to update tb_StoreWSPolling table.");
+      }
+    }
+  }
+}
