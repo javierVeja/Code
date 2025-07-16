@@ -1,0 +1,267 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Threading.Tasks;
+using Microsoft.VisualBasic.FileIO;
+using Desk365API;
+
+
+namespace TicketTransfer
+{
+  class Program
+  {
+
+    public static List<TicketData> ticketList = new List<TicketData>();
+
+    static void Main(string[] args)
+    {
+      string folderPath = @"C:\TicketsTransfer\OneDrive_2_6-24-2025\";
+
+      //create two foreach, one for request and then the other two
+      string[] csvFiles = { "Requests_Notifications.csv", "Requests_Attachments.csv" };
+
+
+      string fullPath = Path.Combine(folderPath, "Requests.csv");
+
+      TextFieldParser parser = new TextFieldParser(fullPath);
+
+      parser.TextFieldType = FieldType.Delimited;
+      parser.SetDelimiters(",");
+      parser.HasFieldsEnclosedInQuotes = true;
+
+      string[] headers = parser.ReadFields();
+
+      while (!parser.EndOfData)
+      {
+        string[] fields = parser.ReadFields();
+
+        // Combines headers and values into a dictionary where each column header maps to its corresponding field value.
+        // Trims whitespace from both headers and values.
+        Dictionary<string, string> row = headers.Zip(fields, (h, v) => new { h, v }).ToDictionary(x => x.h.Trim(), x => x.v.Trim());
+
+        MapToTicketData(row);
+      }
+
+
+      foreach (string csvFile in csvFiles)
+      {
+        string fullPath1 = Path.Combine(folderPath, csvFile);
+
+        TextFieldParser parser1 = new TextFieldParser(fullPath1);
+
+        parser1.TextFieldType = FieldType.Delimited;
+        parser1.SetDelimiters(",");
+        parser1.HasFieldsEnclosedInQuotes = true;
+
+        string[] headers1 = parser1.ReadFields();
+
+        while (!parser1.EndOfData)
+        {
+          string[] fields = parser1.ReadFields();
+
+          // Combines headers and values into a dictionary where each column header maps to its corresponding field value.
+          // Trims whitespace from both headers and values.
+
+          Dictionary<string, string> row = headers1.Zip(fields, (h, v) => new { h, v }).ToDictionary(x => x.h.Trim(), x => x.v.Trim());
+
+
+          MapToConversation(row);
+        }
+      }
+
+      foreach (TicketData ticket in ticketList)
+      {
+        //Link conversations to tickets
+
+        DeskAPIData deskAPIData = GetAPIObject(ticket);
+
+        DeskAPI.SetData(deskAPIData);
+
+        //Console.WriteLine($"RequestID: {ticket.RequestID} | {ticket.Subject}");
+
+        //if (ticket.Conversations != null && ticket.Conversations.Any())
+        //{
+        //  foreach (Conversation conversationFile in ticket.Conversations)
+        //  {
+        //    Console.WriteLine($" File name: {conversationFile.FileName}");
+        //  }
+        //}
+        //else
+        //{
+        //  Console.WriteLine("No conversation found.");
+        //}
+        //Console.WriteLine(new string('-', 50));
+      }
+      //Console.WriteLine("Done. Press any key to exit.");
+      //Console.ReadKey();
+    }
+
+    public static void MapToTicketData(Dictionary<string, string> row)
+    {
+      TicketData ticket = new TicketData();
+
+      string Get(string key)
+      {
+        string get;
+        return row.TryGetValue(key, out get) ? get : null;
+      }
+
+      DateTime GetDate(string key)
+      {
+        DateTime dt;
+        return DateTime.TryParse(Get(key), out dt) ? dt : DateTime.MinValue;
+      }
+
+      int GetInt(string key)
+      {
+        int i;
+        return int.TryParse(Get(key), out i) ? i : 0;
+      }
+
+      ticket.RequestID = GetInt("Request ID");
+      ticket.Subject = Get("Subject");
+      //ticket.conversation = "";
+      ticket.RequesterName = Get("Requester Name");
+      ticket.CreatedDate = GetDate("Created Date");
+      ticket.Description = Get("Description");
+      ticket.Technician = Get("Technician");
+      ticket.Status = Get("Status");
+      ticket.DueByDate = GetDate("DueBy Date");
+      ticket.CompletedDate = GetDate("Completed Date");
+      ticket.Category = Get("Category");
+      ticket.SubCategory = Get("SubCategory");
+      ticket.Item = Get("Item");
+      ticket.Priority = Get("Priority");
+      ticket.Level = Get("Level");
+      ticket.Mode = Get("Mode");
+      ticket.Department = Get("Department");
+      ticket.CreatedBy = Get("Created By");
+      ticket.Resolution = Get("Resolution");
+      ticket.ResolutionSubmittedBy = Get("Resolution Submitted By");
+      ticket.Group = Get("Group");
+      ticket.LastUpdatedTime = GetDate("Last Updated Time");
+      ticket.LastUpdatedBy = Get("Last Updated By");
+      ticket.Caller = Get("Caller");
+      ticket.Pager = Get("Pager");
+
+      ticketList.Add(ticket);
+    }
+
+    static void MapToConversation(Dictionary<string, string> row)
+    {
+      Conversation ticketConversation = new Conversation();
+
+      string Get(string key)
+      {
+        string get;
+        return row.TryGetValue(key, out get) ? get : null;
+      }
+
+      int GetInt(string key)
+      {
+        int i;
+        return int.TryParse(Get(key), out i) ? i : 0;
+      }
+
+      ticketConversation.FileName = Get("File Name");
+
+      ticketConversation.ParentID = GetInt("Parent Id");
+      //ticketConversation.Sender = Get("Sender");
+      //ticketConversation.ToAddress = Get("To Address");
+      ticketConversation.Description = Get("Description");
+
+      TicketData ticket = ticketList.Where(c => c.RequestID == ticketConversation.ParentID).FirstOrDefault();
+
+      ticket.ConversationsList.Add(ticketConversation);
+    }
+
+    private static async Task PingDesk365Async()
+    {
+      string apiKey = ""; // 
+      string baseUrl = "https://qualitydining.desk365.io/apis/v3/ping";
+
+      using (HttpClient client = new HttpClient())
+      {
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+
+        try
+        {
+          var response = await client.GetAsync(baseUrl);
+          var content = await response.Content.ReadAsStringAsync();
+
+          Console.WriteLine($"Status Code: {(int)response.StatusCode} ({response.StatusCode})");
+          Console.WriteLine($"Response Body: {content}");
+        }
+        catch (Exception ex)
+        {
+          Console.WriteLine($"Ping failed: {ex.Message}");
+        }
+      }
+    }
+
+    public static DeskAPIData GetAPIObject(TicketData ticketData)
+    {
+      string storeNumber = ticketData.RequesterName.Replace("BK-", "").TrimStart('0');
+
+      string[] parts = ticketData.Technician.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+      string tech_email = "";
+      if (parts.Length >= 2)
+      {
+        string firstInitial = parts[0].Substring(0, 1).ToLower();
+        string lastName = parts[1].ToLower();
+        tech_email = $"{firstInitial}{lastName}@qdi.com";
+      }
+
+      return new DeskAPIData
+      {
+        ticket_number = ticketData.RequestID,
+        //contact_email = "bk" + ticketData.RequesterName.Remove(0, 3).ToLower() + "mgr@qdi.com",
+        contact_email = $"bk{storeNumber}mgr@qdi.com", //convert name to email
+        subject = ticketData.Subject,
+        description = ticketData.Description,
+        description_text = "",
+        status = ticketData.Status,
+        priority = 2,
+        type = "",
+        source = "",
+        assigned_to = tech_email, //convert name to email
+        company_name = ticketData.Department, // talk to matt to see how does it look on the ticket
+        sla = "",
+        completed_within_sla = null,
+        group = ticketData.Group,
+        category = ticketData.Category,
+        subcategory = ticketData.SubCategory,
+        created_on = ticketData.CreatedDate,
+        updated_on = ticketData.LastUpdatedTime,
+        resolved_on = ticketData.ResolvedTime,
+        closed_on = ticketData.CompletedDate,
+        due_date = ticketData.DueByDate,
+        first_response_time = null,
+        first_assigned_time = "",
+        first_assigned_duration = 0,
+        resolved_duration = null,
+        first_replied_duration = null,
+        closed_duration = null,
+        attachments = ticketData.AttachmentList,
+        //conversation = ticketData.ConversationsList,
+
+        custom_fields = new CustomFields
+        {
+          cf_Item = ticketData.Item,
+          cf_Mode = ticketData.Mode,
+          cf_Caller = ticketData.Caller,
+          cf_Pager = ticketData.Pager,
+          cf_Requester_Name = ticketData.RequesterName,
+          cf_Region = ticketData.Department,
+          cf_Category = ticketData.Category,
+          cf_Sub_Category = ticketData.SubCategory
+        }
+      };
+
+    }
+  }
+}
