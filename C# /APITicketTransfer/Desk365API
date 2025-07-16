@@ -1,0 +1,49 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Desk365API
+{
+  public class DeskAPI
+  {
+    public static string SetData(DeskAPIData deskAPIData)
+    {
+      string data = null;
+
+      deskAPIData.description = "test";
+
+      HttpWebRequest webrequest = (HttpWebRequest)WebRequest.Create($"https://qualitydining.desk365.io/apis/v3/tickets/create_with_attachment?ticket_object={Newtonsoft.Json.JsonConvert.SerializeObject(deskAPIData)}");
+      webrequest.Headers.Clear();
+      webrequest.Accept = "application/json";
+      webrequest.Headers.Add("Authorization", "cabf2072e95ad7cc4d8aeb7ff09a800361193644bac1b1873dccb49d8662c136");
+      webrequest.ContentType = "multipart/form-data";
+      webrequest.Method = "POST";
+
+      foreach (string att in deskAPIData.attachments)
+        using (FileStream fileStream = File.OpenRead(att))
+        using (Stream requestStream = webrequest.GetRequestStream())
+        {
+          int bufferSize = 1024;
+          byte[] buffer = new byte[bufferSize];
+          int byteCount = 0;
+          while ((byteCount = fileStream.Read(buffer, 0, bufferSize)) > 0)
+          {
+            requestStream.Write(buffer, 0, byteCount);
+          }
+        }
+
+      using (HttpWebResponse webresponse = (HttpWebResponse)webrequest.GetResponse())
+      {
+        Encoding enc = System.Text.Encoding.GetEncoding("utf-8");
+        using (StreamReader responseStream = new StreamReader(webresponse.GetResponseStream(), enc))
+          data = responseStream.ReadToEnd();
+        webresponse.Close();
+      }
+      return data;
+    }
+  }
+}
