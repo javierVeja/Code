@@ -1,4 +1,4 @@
-using System;
+it using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -19,7 +19,7 @@ namespace Desk365API
       HttpWebRequest webrequest = (HttpWebRequest)WebRequest.Create($"https://qualitydining.desk365.io/apis/v3/tickets/create_with_attachment?ticket_object={Newtonsoft.Json.JsonConvert.SerializeObject(deskAPIData)}");
       webrequest.Headers.Clear();
       webrequest.Accept = "application/json";
-      webrequest.Headers.Add("Authorization", "cabf2072e95ad7cc4d8aeb7ff09a800361193644bac1b1873dccb49d8662c136");
+      webrequest.Headers.Add("Authorization", "");
       webrequest.ContentType = "multipart/form-data";
       webrequest.Method = "POST";
 
