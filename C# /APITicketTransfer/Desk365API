@@ -19,7 +19,7 @@ namespace Desk365API
       HttpWebRequest webrequest = (HttpWebRequest)WebRequest.Create($"ticket_object={Newtonsoft.Json.JsonConvert.SerializeObject(deskAPIData)}");
       webrequest.Headers.Clear();
       webrequest.Accept = "application/json";
-      webrequest.Headers.Add("Authorization", "");
+      webrequest.Headers.Add("Authorization", "\\Here it would be the access key");
       webrequest.ContentType = "multipart/form-data";
       webrequest.Method = "POST";
 
