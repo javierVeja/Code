@@ -16,7 +16,7 @@ namespace Desk365API
 
       deskAPIData.description = "test";
 
-      HttpWebRequest webrequest = (HttpWebRequest)WebRequest.Create($"https://qualitydining.desk365.io/apis/v3/tickets/create_with_attachment?ticket_object={Newtonsoft.Json.JsonConvert.SerializeObject(deskAPIData)}");
+      HttpWebRequest webrequest = (HttpWebRequest)WebRequest.Create($"ticket_object={Newtonsoft.Json.JsonConvert.SerializeObject(deskAPIData)}");
       webrequest.Headers.Clear();
       webrequest.Accept = "application/json";
       webrequest.Headers.Add("Authorization", "");
